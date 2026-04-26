@@ -35,6 +35,7 @@ sessions_spawn(
   runtime: "subagent",
   mode: "run",
   lightContext: true,
+  runTimeoutSeconds: 600,
   task: "Research X. Return: findings, sources, key metrics."
 )
 ```
@@ -45,6 +46,7 @@ sessions_spawn(
   runtime: "subagent",
   mode: "run",
   lightContext: true,
+  runTimeoutSeconds: 300,
   task: "Run python3 /path/to/script.py. Report output."
 )
 ```
@@ -55,6 +57,7 @@ sessions_spawn(
   runtime: "subagent",
   mode: "run",
   lightContext: true,
+  runTimeoutSeconds: 900,
   task: "Review this data and decide: [data pasted inline]. Return: verdict, conditions, risks."
 )
 ```
@@ -84,9 +87,12 @@ sessions_spawn(
 |---------|-------|-----|
 | Agent times out | Can't access web tools | Use `toolsAllow` or pre-fetch content |
 | Agent times out | Can't run inline Python | Write `.py` file, pass path |
+| Agent times out | `runTimeoutSeconds` too low | Set `runTimeoutSeconds: 900` in spawn call |
+| Agent times out | Gateway under load (10s spawn timeout) | Kill zombie subagents, wait, retry |
 | Agent returns nothing | Missing context | Paste data in `task` parameter |
 | Agent stuck in loop | Vague task | Add explicit "return X" instruction |
 | Gateway crashes | Context overflow on spawn | Use `lightContext: true` |
+| Spawn fails (10s gateway timeout) | Gateway CPU overload | Kill stale subagents first, then retry |
 
 ## Anti-Patterns
 
@@ -95,3 +101,29 @@ sessions_spawn(
 - ❌ Setting 120s timeouts on research tasks
 - ❌ Re-spawning an agent that's still running (>60s = be patient)
 - ❌ Not passing context because "the agent should know"
+
+## Config (openclaw.json)
+
+Set subagent defaults in `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "subagents": {
+        "runTimeoutSeconds": 900,
+        "maxConcurrent": 5
+      }
+    }
+  }
+}
+```
+
+Also set in `~/.openclaw/council-config.json`:
+
+```json
+{
+  "default_timeout": 900,
+  "max_tokens": 8192
+}
+```
