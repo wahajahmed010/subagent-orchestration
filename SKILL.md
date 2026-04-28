@@ -51,8 +51,20 @@ sessions_spawn(
 )
 ```
 
-### Council (Analysis)
+### Council (Multi-Model Deliberation)
 ```
+# Spawn 3 parallel subagents with different models and perspectives
+# See skills/council-of-llms/SKILL.md for full details
+sessions_spawn(model: "ollama/kimi-k2.6:cloud", label: "Council-Strategos", ...)
+sessions_spawn(model: "ollama/deepseek-v3.2:cloud", label: "Council-Analyticos", ...)
+sessions_spawn(model: "ollama/gemma4:31b-cloud", label: "Council-Creativos", ...)
+# Then synthesize all 3 outputs into a unified verdict
+```
+
+### Single-Model Council (Legacy — Avoid)
+```
+# WARNING: Single-model councils cause context overflow and produce shallow analysis
+# Use multi-model pattern above instead
 sessions_spawn(
   runtime: "subagent",
   mode: "run",
